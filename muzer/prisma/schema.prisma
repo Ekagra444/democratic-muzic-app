@@ -12,24 +12,32 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
+//make sure to run npx prisma migrate dev and npx prisma generate everytime you make some changes 
 model User{
   id String @id @default(uuid())
-  email String
+  email String @unique
   provider Provider
   streams Stream[]
   upvotes Upvote[]
 }
 model Stream{
   id String @id @default(uuid())
-  type StreamType
+  type StreamType ?
   active Boolean @default(true)
   upvotes Upvote[] //should be stored in redis
   userId String
+  
+  //only for youtube 
+  title  String?
+  smallImage String?
+  bigImage String?
+
+
   url String
-  extractedId String //https://www.youtube.com/watch?v=GhH1QWY6BDc&t=2012s
+  extractedId String? @unique //https://www.youtube.com/watch?v=GhH1QWY6BDc&t=2012s
   //GhH1QWY6BDc is extracted id of a random youtube video
   user User @relation(fields: [userId], references: [id])
+  
 }
 model Upvote{
   id String @id @default(uuid())
@@ -37,6 +45,8 @@ model Upvote{
   streamID String
   user User @relation(fields: [userId], references: [id])
   stream Stream @relation(fields: [streamID], references: [id])
+  //prevents multiple upvotes by a user to a specific stream 
+  @@unique([userId, streamID])  
 }
 enum StreamType{
   Spotify

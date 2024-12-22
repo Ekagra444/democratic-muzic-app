@@ -1,18 +1,13 @@
-import { PrismaClient } from "@prisma/client/extension";
+import { PrismaClient } from "@prisma/client";
 
-// export const prismaClient = new PrismaClient();
-//later i will introduce a singelton over here 
-let prismaClient:PrismaClient;
-
-if (process.env.NODE_ENV === "production") {
-  // In production, create a single instance
-  prismaClient = new PrismaClient();
-} else {
-  // In development, attach Prisma to the global object
-  if (!global.prisma) {
-    global.prisma = new PrismaClient();
-  }
-  prismaClient = global.prisma;
+declare global {
+    // Allow global `var` definitions
+    // eslint-disable-next-line no-var
+    var prisma: PrismaClient | undefined;
 }
+
+const prismaClient = global.prisma || new PrismaClient();
+
+if (process.env.NODE_ENV !== "production") global.prisma = prismaClient;
 
 export default prismaClient;
